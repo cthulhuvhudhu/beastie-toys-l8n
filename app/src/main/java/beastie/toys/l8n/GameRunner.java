@@ -5,7 +5,9 @@ import beastie.toys.l8n.tree.Node;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
+import static beastie.toys.l8n.App.fm;
 import static beastie.toys.l8n.PrintUtil.print;
+import static beastie.toys.l8n.PrintUtil.println;
 
 public class GameRunner {
 
@@ -18,7 +20,7 @@ public class GameRunner {
         var cont = true;
 
         while (cont) {
-            print(localeUtil.get(MENU.name()));
+            print(Content.menu);
 
             switch (Integer.parseInt(InputUtil.get())) {
                 case 1:
@@ -37,29 +39,28 @@ public class GameRunner {
                     print(root);
                 default:
                     fm.write(root);
-                    farewell();
+                    InputUtil.farewell();
                     cont = false;
             }
         }
     }
 
     private void printFactsByAnimal() {
-        print(localeUtil.get(REQUEST_ANIMAL.name()));
-        var animal = new Subject(InputService.get());
+        print(Content.requestAnimal);
+        var animal = new Subject(InputUtil.get());
         var firstFact = root.find(animal.getNoun());
         var lastData = animal.toString();
         if (firstFact == null) {
-            print(localeUtil.get(NO_FACTS.name()), animal.getNoun());
+            print(Content.animalNoFacts, animal.getNoun());
         } else {
-            print(localeUtil.get(FACTS.name()), animal.getNoun());
+            print(Content.animalFacts, animal.getNoun());
             var facts = new Stack<String>();
             while (firstFact != null) {
                 var fact = Fact.fromQuestion(firstFact.getData());
                 if (fact != null) {
                     var truth = firstFact.getYes().getData().contains(lastData);
-                    var it = localeUtil.get(LocalizationLang.IT.name());
                     var negate = localeUtil.getOp(LocalizationVerbs.VERB_TO_NEGATE.name()).apply(fact.verb());
-                    var result = String.format(" - %s %s %s.", it, truth ? fact.verb() : negate, fact.fact());
+                    var result = String.format(" - %s %s %s.", Subject.POINTER, truth ? fact.verb() : negate, fact.fact());
                     facts.push(result);
                 }
                 lastData = firstFact.getData();
@@ -74,7 +75,7 @@ public class GameRunner {
     }
 
     private void printAnimals() {
-        print(localeUtil.get(ANIMAL_LIST.name()));
+        print(Content.animalList);
         print(" - %s\n",
                 root.leaves().stream()
                         .map(Node::getData)
@@ -87,9 +88,8 @@ public class GameRunner {
     }
 
     private void printStats() {
-        var it = localeUtil.get(LocalizationLang.IT.name());
-        var str = root.isLeaf() ? root.getData() : String.format("%s %s %s", it, Fact.fromQuestion(root.getData()).verb(), Fact.fromQuestion(root.getData()).fact());
-        print(localeUtil.get(KNOWLEDGE_TREE_STATS.name()),
+        var str = root.isLeaf() ? root.getData() : String.format("%s %s %s", Subject.POINTER, Fact.fromQuestion(root.getData()).verb(), Fact.fromQuestion(root.getData()).fact());
+        println(Content.statsFormat,
                 str,
                 root.count(),
                 (long) root.leaves().size(),
@@ -98,28 +98,27 @@ public class GameRunner {
                 root.leaves().stream().mapToInt(Node::getDepth).min().orElse(0),
                 root.leaves().stream().mapToInt(Node::getDepth).average().orElse(0)
         );
-        print();
     }
 
     private void populate() {
         if (fm.exists()) {
             root = fm.read(Node.class);
         } else {
-            print(localeUtil.get(NO_KNOWLEDGE.name()));
-            print(localeUtil.get(FAVE_ANIMAL.name()));
-            var faveAnimal = new Subject(InputService.get());
+            print(Content.welcomeBeginner);
+            print(Content.animalPrompt);
+            var faveAnimal = new Subject(InputUtil.get());
             root = new Node(faveAnimal.toString());
         }
-        print(localeUtil.get(HAVE_KNOWLEDGE.name()));
+        print(Content.welcomeExpert);
     }
 
     public void startGame() {
         boolean letsPlay = true;
 
-//        print(localeUtil.get(START_GAME_SESSION.name()));
+        print(Content.startGame);
         while (letsPlay) {
-            print(localeUtil.get(INSTRUCTIONS.name()));
-            InputService.get();
+            print(Content.instructions);
+            InputUtil.get();
 
             // Traverse existing knowledge tree
             var currNode = root;
@@ -127,24 +126,24 @@ public class GameRunner {
             boolean lastAnswer = false;
             while (!currNode.isLeaf()) {
                 print(currNode.getData());
-                lastAnswer = TranslationService.translateBoolean();
+                lastAnswer = InputUtil.translateBoolean();
                 pNode = currNode;
                 currNode = lastAnswer ? currNode.getYes() : currNode.getNo();
             }
 
-            print(localeUtil.get(GUESS_F.name()), currNode.getData());
-            var confirm = TranslationService.translateBoolean();
+            print(Content.guessFormat, currNode.getData());
+            var confirm = InputUtil.translateBoolean();
             if (confirm) {
-                print(localeUtil.get(CORRECT.name()));
+                print(Content.guessCorrect);
             } else {
-                print(localeUtil.get(INCORRECT_PROMPT.name()));
-                var animalActual = new Subject(InputService.get());
+                print(Content.guessIncorrectThenPrompt);
+                var animalActual = new Subject(InputUtil.get());
                 var faveAnimal = new Subject(currNode.getData());
                 var fact = TranslationService.getFact(faveAnimal, animalActual);
-                print(localeUtil.get(CONFIRM_FACT_F.name()), animalActual);
-                var isAnimal2 = TranslationService.translateBoolean();
+                print(Content.learningConfirm, animalActual);
+                var isAnimal2 = InputUtil.translateBoolean();
                 var negate = localeUtil.getOp(LocalizationVerbs.VERB_TO_NEGATE.name()).apply(fact.verb());
-                print(localeUtil.get(LEARNING_F.name()),
+                print(Content.learningSummary,
                         faveAnimal.getNoun(),
                         isAnimal2 ? negate : fact.verb(),
                         fact.fact(),
@@ -168,11 +167,11 @@ public class GameRunner {
                     }
                 }
 
-                print(localeUtil.get(MADE_QUESTION.name()), question);
-                print(localeUtil.get(LEARNED.name()));
+                print(Content.learningQuestion, question);
+                print(Content.learningDone);
             }
-            print(localeUtil.get(PLAY_AGAIN.name()));
-            letsPlay = TranslationService.translateBoolean(false);
+            print(Content.playAgain);
+            letsPlay = InputUtil.translateBoolean(false);
         }
     }
 }

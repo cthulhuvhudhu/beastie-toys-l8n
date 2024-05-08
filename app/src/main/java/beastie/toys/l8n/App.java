@@ -11,9 +11,6 @@ public class App {
 
     public static void main(String[] args) {
 
-//        public static LocalizationUtil localeUtil;
-//        public static VerbUtil verbUtil;
-
         fm = FileManager.getInstance(
                 Arrays.stream(args)
                         .dropWhile(a -> !"-type".equals(a))
@@ -22,11 +19,6 @@ public class App {
                         .findFirst()
                         .orElse("json")
         );
-
-
-//            localeUtil = LocalizationUtil.getInstance(ResourceBundle.getBundle("main.resource.App"));
-//            verbUtil = VerbUtil.getInstance();
         new GameRunner().run();
-        }
     }
 }
