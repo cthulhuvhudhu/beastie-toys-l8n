@@ -46,28 +46,26 @@ public class InputUtil {
         }
     }
 
-    public static Fact getFact(Subject animal1, Subject animal2) {
+    public static Sentence parseSentence() {
         while (true) {
-            print(localeUtil.get(Localization.REQUEST_FACT_F.name()),
-                    animal1.toString(), animal2.toString());
-
-            var input = InputService.get();
-            var fact = Fact.fromAnswer(input);
-            if (fact != null) { return fact; }
-            print(localeUtil.get(Localization.FACT_FORMAT_ERR.name()));
+            var input = InputUtil.get();
+            try {
+                return Sentence.parseAnswer(input);
+            } catch (IllegalArgumentException e) {
+                print(Content.requestFactError);
+            }
         }
     }
 
     public static void greet() {
         var now = LocalTime.now();
         if (now.isBefore(LocalTime.NOON) && now.isAfter(LocalTime.of(5, 0))) {
-            print(Content.greetingMorning);
+            println(Content.greetingMorning);
         } else if (now.isAfter(LocalTime.NOON) && now.isBefore(LocalTime.of(6, 0))) {
-            print(Content.greetingAfternoon);
+            println(Content.greetingAfternoon);
         } else {
-            print(Content.greetingEvening);
+            println(Content.greetingEvening);
         }
-        print();
     }
 
     public static void farewell() {

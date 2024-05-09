@@ -56,27 +56,21 @@ public class GameRunner {
             print(Content.animalFacts, animal.getNoun());
             var facts = new Stack<String>();
             while (firstFact != null) {
-                var fact = Fact.fromQuestion(firstFact.getData());
-                if (fact != null) {
-                    var truth = firstFact.getYes().getData().contains(lastData);
-                    var negate = localeUtil.getOp(LocalizationVerbs.VERB_TO_NEGATE.name()).apply(fact.verb());
-                    var result = String.format(" - %s %s %s.", Subject.POINTER, truth ? fact.verb() : negate, fact.fact());
-                    facts.push(result);
-                }
+                var fact = Sentence.parseQuestion(firstFact.getData());
+                var truth = firstFact.getYes().getData().contains(lastData);
+                facts.push(fact.toPtrStatement(truth));
                 lastData = firstFact.getData();
                 firstFact = firstFact.getParent();
             }
             while (!facts.isEmpty()) {
-                print(facts.pop());
-                print();
+                println(facts.pop());
             }
         }
-        print();
     }
 
     private void printAnimals() {
         print(Content.animalList);
-        print(" - %s\n",
+        println(" - %s\n",
                 root.leaves().stream()
                         .map(Node::getData)
                         .map(Subject::new)
@@ -84,11 +78,10 @@ public class GameRunner {
                         .sorted()
                         .collect(Collectors.joining("\n - "))
         );
-        print();
     }
 
     private void printStats() {
-        var str = root.isLeaf() ? root.getData() : String.format("%s %s %s", Subject.POINTER, Fact.fromQuestion(root.getData()).verb(), Fact.fromQuestion(root.getData()).fact());
+        var str = root.isLeaf() ? root.getData() : Sentence.parseQuestion(root.getData()).toPtrStatement();
         println(Content.statsFormat,
                 str,
                 root.count(),
@@ -137,26 +130,21 @@ public class GameRunner {
                 print(Content.guessCorrect);
             } else {
                 print(Content.guessIncorrectThenPrompt);
-                var animalActual = new Subject(InputUtil.get());
-                var faveAnimal = new Subject(currNode.getData());
-                var fact = TranslationService.getFact(faveAnimal, animalActual);
-                print(Content.learningConfirm, animalActual);
-                var isAnimal2 = InputUtil.translateBoolean();
-                var negate = localeUtil.getOp(LocalizationVerbs.VERB_TO_NEGATE.name()).apply(fact.verb());
-                print(Content.learningSummary,
-                        faveAnimal.getNoun(),
-                        isAnimal2 ? negate : fact.verb(),
-                        fact.fact(),
-                        animalActual.getNoun(),
-                        isAnimal2 ? fact.verb() : negate,
-                        fact.fact());
+                var animal2 = new Subject(InputUtil.get());
+                var animal1 = new Subject(currNode.getData());
 
-                var otherAnimal = new Node(animalActual.toString());
+                print(Content.requestFactFormat, animal1.toString(), animal2.toString());
+                var fact = InputUtil.parseSentence();
+                print(Content.learningConfirm, animal2);
+                var isAnimal2 = InputUtil.translateBoolean();
+                var animal1Fact = fact.toStatementF(animal1.getNoun(), !isAnimal2);
+                var animal2Fact = fact.toStatementF(animal2.getNoun(), isAnimal2);
+                print(Content.learningSummaryF, animal1Fact, animal2Fact);
+
+                var otherAnimal = new Node(animal2.toString());
                 var yesChild = isAnimal2 ? otherAnimal : currNode;
                 var noChild = isAnimal2 ? currNode : otherAnimal;
-                var questionVerb = localeUtil.getOp(LocalizationVerbs.VERB_TO_QUESTION.name()).apply(fact.verb());
-                var question = String.format("%s %s?", questionVerb, fact.fact());
-                var newNode = new Node(yesChild, noChild, question, pNode == null ? 0 : pNode.getDepth() + 1);
+                var newNode = new Node(yesChild, noChild, fact.toQuestion);
                 if (pNode == null) {
                     root = newNode;
                 } else {
@@ -167,7 +155,7 @@ public class GameRunner {
                     }
                 }
 
-                print(Content.learningQuestion, question);
+                print(Content.learningQuestionF, fact.toQuestion);
                 print(Content.learningDone);
             }
             print(Content.playAgain);

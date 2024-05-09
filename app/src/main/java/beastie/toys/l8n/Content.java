@@ -26,8 +26,8 @@ public class Content {
     public static String instructions = "You think of an animal, and I guess it.\nPress enter when you're ready.\n";
     public static String learningConfirm = "Is the statement correct for %s?\n";
     public static String learningDone = "Nice! I've learned so much about animals!\n";
-    public static String learningQuestion = "I can distinguish these animals by asking the question:\n - %s\n";
-    public static String learningSummary = "I have learned the following facts about animals:\n - The %s %s %s.\n - The %s %s %s.\n";
+    public static String learningQuestionF = "I can distinguish these animals by asking the question:\n - %s\n";
+    public static String learningSummaryF = "I have learned the following facts about animals:\n - %s\n - %s.\n";
     public static String menu = """
             What do you want to do:
             
