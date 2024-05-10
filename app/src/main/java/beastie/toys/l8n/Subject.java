@@ -1,5 +1,7 @@
 package beastie.toys.l8n;
 
+import com.google.common.base.Objects;
+
 import java.util.Arrays;
 
 public class Subject {
@@ -11,7 +13,7 @@ public class Subject {
     public static final String POINTER = "it";
     public static final String[] ARTICLES = new String[]{VOWEL_ARTICLE, INDEFINITE_ARTICLE, DEFAULT_ARTICLE};
 
-    public Subject(String s) {
+    private Subject(String s) {
         var arg = Arrays.stream(s.split(" ")).toList();
         this.noun = s;
 
@@ -25,6 +27,10 @@ public class Subject {
             }
         }
         this.article = resolveArticle(this.noun);
+    }
+
+    public static Subject of(String s) {
+        return new Subject(s);
     }
 
     public Subject(String article, String noun) {
@@ -50,5 +56,18 @@ public class Subject {
             return noun;
         }
         return String.format("%s %s", article, noun);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Subject subject = (Subject) o;
+        return Objects.equal(article, subject.article) && Objects.equal(noun, subject.noun);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(article, noun);
     }
 }

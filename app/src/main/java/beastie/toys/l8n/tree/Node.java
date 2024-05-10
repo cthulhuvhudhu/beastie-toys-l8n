@@ -1,11 +1,14 @@
 package beastie.toys.l8n.tree;
 
+import beastie.toys.l8n.Subject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -72,24 +75,23 @@ public class Node {
 
     @JsonIgnore
     public Node find(String data) {
-        Node answer = null;
-        if (this.isLeaf()) return null;
-        if (no.isLeaf()) {
-            if (no.data.contains(data)) {
-                return this;
+        var toVisit = new ArrayDeque<Node>();
+        toVisit.add(this);
+        while (!toVisit.isEmpty()) {
+            var curr = toVisit.pop();
+            Pattern pattern = Pattern.compile(String.format("\\b%s\\b", data));
+            Matcher matcher = pattern.matcher(curr.data);
+            if (matcher.find()) {
+                return curr.parent;
             }
-        } else {
-            answer = no.find(data);
-            if (answer != null) return answer;
-        }
-        if (yes.isLeaf()) {
-            if (yes.data.contains(data)) {
-                return this;
+            if (curr.no != null) {
+                toVisit.push(curr.no);
             }
-        } else {
-            answer = yes.find(data);
+            if (curr.yes != null) {
+                toVisit.push(curr.yes);
+            }
         }
-        return answer;
+        return null;
     }
 
     @JsonIgnore
@@ -106,8 +108,7 @@ public class Node {
 
     @JsonIgnore
     public int maxDepth() {
-        if (this.isLeaf()) { return this.getDepth(); }
-        return Math.max(this.no.maxDepth(), this.yes.maxDepth());
+        return leaves().stream().mapToInt(Node::getDepth).max().orElse(0);
     }
 
     @JsonIgnore
@@ -126,6 +127,7 @@ public class Node {
             var currNode = nodes.pop();
             var nodePrefix = nodePrint.remove(currNode);
             sb.append(String.format("%s%s\n", nodePrefix, currNode.data));
+            // TODO Depth prefix is incorrect in case of imbalanced tree. check out other solutions
             var depthPrefix = "";
             var currDepth = currNode.getDepth();
             if (currNode.parent != null && currNode == currNode.parent.yes) {

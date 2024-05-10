@@ -27,12 +27,12 @@ public class Content {
     public static String learningConfirm = "Is the statement correct for %s?\n";
     public static String learningDone = "Nice! I've learned so much about animals!\n";
     public static String learningQuestionF = "I can distinguish these animals by asking the question:\n - %s\n";
-    public static String learningSummaryF = "I have learned the following facts about animals:\n - %s\n - %s.\n";
+    public static String learningSummaryF = "I have learned the following facts about animals:\n - %s\n - %s\n";
     public static String menu = """
             What do you want to do:
             
             1. Play the guessing game
-            2. list of all animals
+            2. List of all animals
             3. Search for an animal
             4. Calculate statistics
             5. Print the Knowledge Tree
@@ -40,7 +40,7 @@ public class Content {
             """;
     public static String[] negativeOptions = new String[]{"n", "no", "no way", "nah", "nope", "negative",
             "i don't think so", "yeah no"};
-    public static String playAgain = "Would you like to play again?\n\n";
+    public static String playAgain = "Would you like to play again?";
     public static String requestAnimal = "Enter the animal:\n";
     public static String requestFactError = """
             The examples of a statement:

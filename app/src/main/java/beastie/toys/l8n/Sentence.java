@@ -16,18 +16,18 @@ public class Sentence {
 
     public String toPtrStatement() { return toPtrStatement(false); }
 
-    public String toPtrStatement(boolean negate) {
-        return String.format("%s %s %s.",
-                LangUtil.cap(Subject.INDEFINITE_ARTICLE),
-                negate ? verb.negation : verb.conjugate,
+    public String toPtrStatement(boolean isTrue) {
+        return String.format("%s %s%s.",
+                LangUtil.cap(Subject.POINTER),
+                isTrue ? verb.conjugate : verb.negation,
                 fact);
     }
 
-    public String toStatementF(String subject, boolean negate) {
+    public String toStatementF(String subject, boolean isTrue) {
         return String.format("%s %s %s %s.",
                 LangUtil.cap(Subject.INDEFINITE_ARTICLE),
                 subject,
-                negate ? verb.negation : verb.conjugate,
+                isTrue ? verb.conjugate : verb.negation,
                 fact);
     }
 
@@ -47,8 +47,9 @@ public class Sentence {
     public static Sentence parseAnswer(String answer) {
         answer = answer.toLowerCase();
         for (VerbDict verb : EnumSet.allOf(VerbDict.class)) {
-            if (answer.startsWith(Subject.POINTER + verb.conjugate.toLowerCase())) {
-                answer = answer.replace(Subject.POINTER + verb.conjugate.toLowerCase(), "");
+            var expected = String.format("%s %s ", Subject.POINTER.toLowerCase(), verb.conjugate.toLowerCase());
+            if (answer.startsWith(expected)) {
+                answer = answer.replace(expected, "");
                 return new Sentence(verb, answer);
             }
         }

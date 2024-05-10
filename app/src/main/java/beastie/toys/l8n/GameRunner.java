@@ -15,14 +15,15 @@ public class GameRunner {
 
     public void run() {
         InputUtil.greet();
-        populate();
+        loadTree();
 
         var cont = true;
 
         while (cont) {
             print(Content.menu);
 
-            switch (Integer.parseInt(InputUtil.get())) {
+            var opt = InputUtil.get();
+            switch (Integer.parseInt(opt)) {
                 case 1:
                     startGame();
                     break;
@@ -37,8 +38,10 @@ public class GameRunner {
                     break;
                 case 5:
                     print(root);
+                    break;
                 default:
                     fm.write(root);
+                    InputUtil.close();
                     InputUtil.farewell();
                     cont = false;
             }
@@ -47,7 +50,7 @@ public class GameRunner {
 
     private void printFactsByAnimal() {
         print(Content.requestAnimal);
-        var animal = new Subject(InputUtil.get());
+        var animal = Subject.of(InputUtil.get());
         var firstFact = root.find(animal.getNoun());
         var lastData = animal.toString();
         if (firstFact == null) {
@@ -73,7 +76,7 @@ public class GameRunner {
         println(" - %s\n",
                 root.leaves().stream()
                         .map(Node::getData)
-                        .map(Subject::new)
+                        .map(Subject::of)
                         .map(Subject::getNoun)
                         .sorted()
                         .collect(Collectors.joining("\n - "))
@@ -81,7 +84,7 @@ public class GameRunner {
     }
 
     private void printStats() {
-        var str = root.isLeaf() ? root.getData() : Sentence.parseQuestion(root.getData()).toPtrStatement();
+        var str = root.isLeaf() ? root.getData() : Sentence.parseQuestion(root.getData()).toQuestion;
         println(Content.statsFormat,
                 str,
                 root.count(),
@@ -93,16 +96,20 @@ public class GameRunner {
         );
     }
 
-    private void populate() {
+    private void loadTree() {
         if (fm.exists()) {
             root = fm.read(Node.class);
         } else {
-            print(Content.welcomeBeginner);
-            print(Content.animalPrompt);
-            var faveAnimal = new Subject(InputUtil.get());
-            root = new Node(faveAnimal.toString());
+            populate();
         }
         print(Content.welcomeExpert);
+    }
+
+    private void populate() {
+        print(Content.welcomeBeginner);
+        print(Content.animalPrompt);
+        var faveAnimal = Subject.of(InputUtil.get());
+        root = new Node(faveAnimal.toString());
     }
 
     public void startGame() {
@@ -113,12 +120,11 @@ public class GameRunner {
             print(Content.instructions);
             InputUtil.get();
 
-            // Traverse existing knowledge tree
             var currNode = root;
             Node pNode = null;
             boolean lastAnswer = false;
             while (!currNode.isLeaf()) {
-                print(currNode.getData());
+                println(currNode.getData());
                 lastAnswer = InputUtil.translateBoolean();
                 pNode = currNode;
                 currNode = lastAnswer ? currNode.getYes() : currNode.getNo();
@@ -129,37 +135,50 @@ public class GameRunner {
             if (confirm) {
                 print(Content.guessCorrect);
             } else {
-                print(Content.guessIncorrectThenPrompt);
-                var animal2 = new Subject(InputUtil.get());
-                var animal1 = new Subject(currNode.getData());
-
-                print(Content.requestFactFormat, animal1.toString(), animal2.toString());
-                var fact = InputUtil.parseSentence();
-                print(Content.learningConfirm, animal2);
-                var isAnimal2 = InputUtil.translateBoolean();
-                var animal1Fact = fact.toStatementF(animal1.getNoun(), !isAnimal2);
-                var animal2Fact = fact.toStatementF(animal2.getNoun(), isAnimal2);
-                print(Content.learningSummaryF, animal1Fact, animal2Fact);
-
-                var otherAnimal = new Node(animal2.toString());
-                var yesChild = isAnimal2 ? otherAnimal : currNode;
-                var noChild = isAnimal2 ? currNode : otherAnimal;
-                var newNode = new Node(yesChild, noChild, fact.toQuestion);
-                if (pNode == null) {
-                    root = newNode;
-                } else {
-                    if (lastAnswer) {
-                        pNode.setYes(newNode);
-                    } else {
-                        pNode.setNo(newNode);
-                    }
-                }
-
-                print(Content.learningQuestionF, fact.toQuestion);
-                print(Content.learningDone);
+                var newNode = learn(currNode);
+                updateTree(newNode, pNode, lastAnswer);
             }
-            print(Content.playAgain);
+            println(Content.playAgain);
             letsPlay = InputUtil.translateBoolean(false);
         }
+    }
+
+    private void updateTree(Node newNode, Node pNode, boolean lastAnswer) {
+        if (pNode == null) {
+            root = newNode;
+        } else {
+            if (lastAnswer) {
+                pNode.setYes(newNode);
+            } else {
+                pNode.setNo(newNode);
+            }
+        }
+    }
+
+    private Sentence getFact(Subject animal1, Subject animal2) {
+        print(Content.requestFactFormat, animal1.toString(), animal2.toString());
+        return InputUtil.parseSentence();
+    }
+
+    private Node learn(Node currNode) {
+        print(Content.guessIncorrectThenPrompt);
+        var animal1 = Subject.of(currNode.getData());
+        var animal2 = Subject.of(InputUtil.get());
+        var fact = getFact(animal1, animal2);
+
+
+        print(Content.learningConfirm, animal2);
+        var isAnimal2 = InputUtil.translateBoolean();
+        var animal1Fact = fact.toStatementF(animal1.getNoun(), !isAnimal2);
+        var animal2Fact = fact.toStatementF(animal2.getNoun(), isAnimal2);
+        print(Content.learningSummaryF, animal1Fact, animal2Fact);
+
+        var otherAnimal = new Node(animal2.toString());
+        var yesChild = isAnimal2 ? otherAnimal : currNode;
+        var noChild = isAnimal2 ? currNode : otherAnimal;
+
+        print(Content.learningQuestionF, fact.toQuestion);
+        print(Content.learningDone);
+        return new Node(yesChild, noChild, fact.toQuestion);
     }
 }
