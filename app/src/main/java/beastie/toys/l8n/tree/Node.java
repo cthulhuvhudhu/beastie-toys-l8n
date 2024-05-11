@@ -1,12 +1,9 @@
 package beastie.toys.l8n.tree;
 
-import beastie.toys.l8n.Subject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.util.ArrayDeque;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -113,36 +110,41 @@ public class Node {
 
     @JsonIgnore
     public String toString() {
+
         var yesBullet = "├ ";
         var noBullet = "└ ";
         var join = "│";
         var root = " └ ";
         var notRoot = "  ";
-        var nodes = new ArrayDeque<Node>();
-        var nodePrint = new HashMap<Node, String>();
-        var sb = new StringBuilder();
-        nodes.add(this);
-        nodePrint.put(this, root);
-        while (!nodes.isEmpty()) {
-            var currNode = nodes.pop();
-            var nodePrefix = nodePrint.remove(currNode);
-            sb.append(String.format("%s%s\n", nodePrefix, currNode.data));
-            // TODO Depth prefix is incorrect in case of imbalanced tree. check out other solutions
-            var depthPrefix = "";
-            var currDepth = currNode.getDepth();
-            if (currNode.parent != null && currNode == currNode.parent.yes) {
-                depthPrefix = join.repeat(currDepth);
-            } else if (currDepth > 0) {
-                depthPrefix = join.repeat(currDepth - 1) + " ";
-            }
+        StringBuilder sb = new StringBuilder();
+        var toVisit = new ArrayDeque<Map.Entry<Node, String>>();
+        toVisit.add(new AbstractMap.SimpleEntry<>(this, ""));
 
-            if (currNode.no != null) {
-                nodePrint.put(currNode.no, String.format("%s%s%s", notRoot, depthPrefix, noBullet));
-                nodes.push(currNode.no);
+        while (!toVisit.isEmpty()) {
+            var curr = toVisit.pop();
+            if (curr.getKey() == null) {
+                continue;
             }
-            if (currNode.yes != null) {
-                nodePrint.put(currNode.yes, String.format("%s%s%s", notRoot, depthPrefix, yesBullet));
-                nodes.push(currNode.yes);
+            var node = curr.getKey();
+            if (node.parent == null) {
+                sb.append(curr.getValue()).append(root).append(node.data).append("\n");
+                toVisit.push(new AbstractMap.SimpleEntry<>(curr.getKey().no, notRoot));
+                toVisit.push(new AbstractMap.SimpleEntry<>(curr.getKey().yes, notRoot));
+            } else {
+                String newPrefix;
+                if (node.parent.yes == node) {
+                    sb.append(String.format("%s%s", curr.getValue(), yesBullet)).append(node.data).append("\n");
+                    newPrefix = curr.getValue() + join;
+                } else {
+                    sb.append(String.format("%s%s", curr.getValue(), noBullet)).append(node.data).append("\n");
+                    newPrefix = curr.getValue() + " ";
+                }
+                if (node.no != null) {
+                    toVisit.push(new AbstractMap.SimpleEntry<>(curr.getKey().no, newPrefix));
+                }
+                if (node.yes != null) {
+                    toVisit.push(new AbstractMap.SimpleEntry<>(curr.getKey().yes, newPrefix));
+                }
             }
         }
         return sb.toString();

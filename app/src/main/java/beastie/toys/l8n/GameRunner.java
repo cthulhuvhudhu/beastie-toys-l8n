@@ -23,6 +23,9 @@ public class GameRunner {
             print(Content.menu);
 
             var opt = InputUtil.get();
+            if (opt.isEmpty()) {
+                continue;
+            }
             switch (Integer.parseInt(opt)) {
                 case 1:
                     startGame();

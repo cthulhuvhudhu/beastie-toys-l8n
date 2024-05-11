@@ -1,0 +1,39 @@
+{
+  "yes" : {
+    "yes" : {
+      "data" : "a fox"
+    },
+    "no" : {
+      "yes" : {
+        "data" : "a red panda"
+      },
+      "no" : {
+        "data" : "a squirrel"
+      },
+      "data" : "Does it have stripes?"
+    },
+    "data" : "Is it a carnivore?"
+  },
+  "no" : {
+    "yes" : {
+      "data" : "a dragon"
+    },
+    "no" : {
+      "yes" : {
+        "data" : "a raven"
+      },
+      "no" : {
+        "yes" : {
+          "data" : "a cat"
+        },
+        "no" : {
+          "data" : "an elephant"
+        },
+        "data" : "Does it have nine lives?"
+      },
+      "data" : "Can it fly?"
+    },
+    "data" : "Is it imaginary?"
+  },
+  "data" : "Does it have a bushy tail?"
+}
