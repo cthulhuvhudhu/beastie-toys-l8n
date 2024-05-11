@@ -29,6 +29,10 @@ replay_pid*
 # Ignore Gradle build output directory
 build
 
+*.json
+*.yaml
+*.xml
+
 # Ignore IntelliJ
 .idea
 *.iml
