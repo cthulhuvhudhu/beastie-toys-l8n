@@ -4,8 +4,12 @@ import beastie.toys.l8n.Sentence;
 
 import java.util.Arrays;
 import java.util.ListResourceBundle;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+
+import static resource.VerbDict_en.getVerbDict;
+import static resource.VerbDict_en.matcher;
 
 public class App extends ListResourceBundle {
 
@@ -15,8 +19,8 @@ public class App extends ListResourceBundle {
             {"affirmatives", new String[] {"y", "yes", "ya", "affirmative", "you got it",
                 "indeed", "you bet", "correct", "exactly", "yeah", "yep", "sure", "right", "you said it"}},
             {"animal.fact.header", "Facts about the %s\n"},
-            {"animal.list.header", "Here are the animals I know:\n"},
             {"animal.fact.header.none", "No facts about the %s\n"},
+            {"animal.list.header", "Here are the animals I know:\n"},
             {"animal.prompt", "Which animal do you like most?\n"},
             {"animal.request", "Enter the animal:\n"},
             {"animal.request.error", """
@@ -39,10 +43,9 @@ public class App extends ListResourceBundle {
             {"answer.confirm.no", "You answered: No\n"},
             {"answer.confirm.yes", "You answered: Yes\n"},
             {"farewells", new String[]{"Bye!\n", "See you later\n", "See you soon\n", "Take it easy\n"}},
-            {"greeting.afternoon", "Good morning\n"},
-            {"greeting.evening", "Good afternoon\n"},
-            {"greeting.morning", "Good evening\n"},
-            {"", "I guessed correctly! I win.\n"},
+            {"greeting.afternoon", "Good afternoon\n"},
+            {"greeting.evening", "Good evening\n"},
+            {"greeting.morning", "Good morning\n"},
             {"guess.correct", "I guessed correctly! I win.\n"},
             {"guess.format", "Is it %s?\n"},
             {"guess.incorrect.prompt", "I give up. What animal do you have in mind?\n"},
@@ -51,6 +54,10 @@ public class App extends ListResourceBundle {
             {"lang.article.default", "a"},
             {"lang.article.all", new String[]{"an", "the", "a"}},
             {"lang.article.object", "it"},
+            {"lang.fun.article.identifier", (UnaryOperator<String>) s -> {
+                var qualifyingNoun = Arrays.stream(s.split(" ")).reduce((a, b) -> b).orElse("");
+                return ("aeioux".indexOf(qualifyingNoun.charAt(0)) < 0) ? "a" : "an";
+            }},
             {"lang.fun.fact.question.parse", (Function<String, Sentence>) s -> {
                 if (s.startsWith("Can it")) {
                     return new Sentence(s.replace("Can it ", "").replace("?", ""), "can");
@@ -64,41 +71,18 @@ public class App extends ListResourceBundle {
             }},
             {"lang.fun.fact.answer.parse", (Function<String, Sentence>) s -> {
                 s = s.toLowerCase();
-                if (s.startsWith("it can")) {
-                    return new Sentence(s.replace("it can ", ""), "can");
-                } else if (s.startsWith("it has")) {
-                    return new Sentence(s.replace("it has ", ""), "has");
-                } else if (s.startsWith("it is")) {
-                    return new Sentence(s.replace("it is ", ""), "is");
-                } else {
-                    throw new IllegalArgumentException("Unknown answer type: " + s);
+                var verb = matcher(s);
+                if (verb == null) {
+                    throw new IllegalArgumentException("Unknown verb: " + s);
                 }
+                return new Sentence(s.replace("it " + verb.conjugate + " ", ""), verb.conjugate);
             }},
-            {"lang.fun.article.identifier", (UnaryOperator<String>) s -> {
-                    var qualifyingNoun = Arrays.stream(s.split(" ")).reduce((a, b) -> b).orElse("");
-                    return ("aeioux".indexOf(qualifyingNoun.charAt(0)) < 0) ? "a" : "an";
-            }},
-            {"lang.fun.verb.question", (UnaryOperator<String>) verb -> switch (verb) {
-                case "is" -> "Is it";
-                case "has" -> "Does it have";
-                case "can" -> "Can it";
-                default -> null;
-            }},
-            {"lang.fun.verb.negate", (UnaryOperator<String>) verb -> switch(verb) {
-                case "is" -> "isn't";
-                case "has" -> "doesn't have";
-                case "can" -> "can't";
-                default -> null;
-            }},
-            {"lang.verb.identity.present", "is"},
-            {"lang.verb.identity.negate", "isn't"},
-            {"lang.verb.identity.question", "Is it"},
-            {"lang.verb.possession.present", "has"},
-            {"lang.verb.possession.negate", "doesn't have"},
-            {"lang.verb.possession.present", "Does it have"},
-            {"lang.verb.ability.present", "can"},
-            {"lang.verb.ability.negate", "can't"},
-            {"lang.verb.ability.question", "Can it"},
+            {"lang.fun.verb.question", (UnaryOperator<String>) verb ->
+                Optional.ofNullable(getVerbDict(verb)).map(v -> v.ptrQuestion).orElse(null)
+            },
+            {"lang.fun.verb.negate", (UnaryOperator<String>) verb ->
+                Optional.ofNullable(getVerbDict(verb)).map(v -> v.negation).orElse(null)
+            },
             {"learn.confirm", "Is the statement correct for %s?\n"},
             {"learn.done", "Nice! I've learned so much about animals!\n"},
             {"learn.questions.format", "I can distinguish these animals by asking the question:\n - %s\n"},
