@@ -4,10 +4,12 @@
 package beastie.toys.l8n;
 
 import java.util.Arrays;
+import java.util.ResourceBundle;
 
 public class App {
 
     public static FileManager fm;
+    public static LocaleUtil localeUtil;
 
     public static void main(String[] args) {
 
@@ -19,6 +21,7 @@ public class App {
                         .findFirst()
                         .orElse("json")
         );
+        localeUtil = LocaleUtil.getInstance(ResourceBundle.getBundle("resource.App"));
         new GameRunner().run();
     }
 }
