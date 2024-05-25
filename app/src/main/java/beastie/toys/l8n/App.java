@@ -3,12 +3,22 @@
  */
 package beastie.toys.l8n;
 
+import java.util.Arrays;
+
 public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
+
+    public static FileManager fm;
 
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+
+        fm = FileManager.getInstance(
+                Arrays.stream(args)
+                        .dropWhile(a -> !"-type".equals(a))
+                        .limit(2)
+                        .skip(1)
+                        .findFirst()
+                        .orElse("json")
+        );
+        new GameRunner().run();
     }
 }
