@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
+import static beastie.toys.l8n.App.localeUtil;
 import static beastie.toys.l8n.PrintUtil.print;
 import static beastie.toys.l8n.PrintUtil.println;
 
@@ -37,12 +38,12 @@ public class InputUtil {
         while (true) {
             var input = get();
 
-            if (Arrays.asList(Content.affirmativeOptions).contains(input)) {
-                if (print) { print(Content.confirmYes); }
+            if (Arrays.asList(localeUtil.getArr("affirmatives")).contains(input)) {
+                if (print) { print(localeUtil.get("answer.confirm.yes")); }
                 return true;
             }
-            if (Arrays.asList(Content.negativeOptions).contains(input)) {
-                if (print) { print(Content.confirmNo); }
+            if (Arrays.asList(localeUtil.getArr("negatives")).contains(input)) {
+                if (print) { print(localeUtil.get("answer.confirm.no")); }
                 return false;
             }
             clarifyBoolean();
@@ -53,9 +54,9 @@ public class InputUtil {
         while (true) {
             var input = InputUtil.get();
             try {
-                return Sentence.parseAnswer(input);
+                return Sentence.fromAnswer(input);
             } catch (IllegalArgumentException e) {
-                print(Content.requestFactError);
+                print(localeUtil.get("animal.request.error"));
             }
         }
     }
@@ -63,20 +64,22 @@ public class InputUtil {
     public static void greet() {
         var now = LocalTime.now();
         if (now.isBefore(LocalTime.NOON) && now.isAfter(MORNING_TIME)) {
-            println(Content.greetingMorning);
+            println(localeUtil.get("greeting.morning"));
         } else if (now.isAfter(LocalTime.NOON) && now.isBefore(EVENING_TIME)) {
-            println(Content.greetingAfternoon);
+            println(localeUtil.get("greeting.afternoon"));
         } else {
-            println(Content.greetingEvening);
+            println(localeUtil.get("greeting.evening"));
         }
     }
 
     public static void farewell() {
-        println(Content.farewellOptions[rand.nextInt(Content.farewellOptions.length - 1)]);
+        var farewells = localeUtil.getArr("farewells");
+        println(farewells[rand.nextInt(farewells.length - 1)]);
     }
 
     public static void clarifyBoolean() {
-        print(Content.clarifyOptions[rand.nextInt(Content.clarifyOptions.length - 1)]);
+        var clarifiers = localeUtil.getArr("answer.clarifications");
+        print(clarifiers[rand.nextInt(clarifiers.length - 1)]);
     }
 
     public static void close() {
