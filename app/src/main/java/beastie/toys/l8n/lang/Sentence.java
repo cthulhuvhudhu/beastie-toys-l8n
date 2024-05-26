@@ -1,4 +1,4 @@
-package beastie.toys.l8n;
+package beastie.toys.l8n.lang;
 
 import static beastie.toys.l8n.App.localeUtil;
 
@@ -13,16 +13,13 @@ public record Sentence(String fact, String verb) {
     }
 
     public String toStatement(String subject, boolean isTrue) {
-        return String.format("%s %s %s %s.",
-            localeUtil.getOp("lang.fun.article.identifier").apply(subject),
-            subject,
-            isTrue ? verb : localeUtil.getOp("lang.fun.verb.negate").apply(verb),
-            fact
-        );
+        String article = localeUtil.getOp("lang.fun.article.identifier").apply(subject);
+        String verbForm = isTrue ? verb : localeUtil.getOp("lang.fun.verb.negate").apply(verb);
+        return article + " " + subject + " " + verbForm + " " + fact + ".";
     }
 
     public String toQuestion() {
-        var questionVerb = localeUtil.getOp("lang.fun.verb.question").apply(verb());
-        return String.format("%s %s?", questionVerb, fact);
+        String questionVerb = localeUtil.getOp("lang.fun.verb.question").apply(verb());
+        return questionVerb + " " + fact + "?";
     }
 }

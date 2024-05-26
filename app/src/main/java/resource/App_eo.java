@@ -1,6 +1,6 @@
 package resource;
 
-import beastie.toys.l8n.Sentence;
+import beastie.toys.l8n.lang.Sentence;
 
 import java.util.Arrays;
 import java.util.ListResourceBundle;

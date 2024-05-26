@@ -1,82 +1,67 @@
 package beastie.toys.l8n;
 
+import beastie.toys.l8n.lang.LangUtil;
+import beastie.toys.l8n.lang.Sentence;
+import beastie.toys.l8n.lang.Subject;
 import beastie.toys.l8n.tree.Node;
+import beastie.toys.l8n.util.InputUtil;
+import beastie.toys.l8n.util.PrintUtil;
 
-import java.util.Stack;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static beastie.toys.l8n.App.fm;
 import static beastie.toys.l8n.App.localeUtil;
-import static beastie.toys.l8n.PrintUtil.print;
-import static beastie.toys.l8n.PrintUtil.println;
+import static beastie.toys.l8n.App.fileManager;
+import static beastie.toys.l8n.util.PrintUtil.print;
+import static beastie.toys.l8n.util.PrintUtil.println;
 
 public class GameRunner {
-
-    private Node root;
+    protected Node root;
+    private final Map<Integer, Runnable> menuOptions = Map.of(
+        0, this::exit,
+        1, this::startGame,
+        2, this::printAnimals,
+        3, this::printFactsByAnimal,
+        4, this::printStats,
+        5, () -> print(root)
+    );
 
     public void run() {
         InputUtil.greet();
         loadTree();
 
-        var cont = true;
-
-        while (cont) {
+        do {
             println(localeUtil.get("menu"));
-
             var opt = InputUtil.get();
             if (opt.isEmpty()) {
                 continue;
+            } try {
+                var option = Integer.parseInt(opt);
+                if (menuOptions.containsKey(option)) {
+                    menuOptions.get(option).run();
+                }
+            } catch (NumberFormatException e) {
+                // Simply reprint menu and start over
             }
-            switch (Integer.parseInt(opt)) {
-                case 1:
-                    startGame();
-                    break;
-                case 2:
-                    printAnimals();
-                    break;
-                case 3:
-                    printFactsByAnimal();
-                    break;
-                case 4:
-                    printStats();
-                    break;
-                case 5:
-                    print(root);
-                    break;
-                default:
-                    fm.write(root);
-                    InputUtil.close();
-                    InputUtil.farewell();
-                    cont = false;
-            }
-        }
+        } while (true);
+    }
+
+    private void exit() {
+        fileManager.write(root);
+        InputUtil.close();
+        InputUtil.farewell();
+        System.exit(0);
     }
 
     private void printFactsByAnimal() {
         print(localeUtil.get("animal.request"));
         var animal = Subject.of(InputUtil.get());
-        var firstFact = root.find(animal.getNoun());
-        var lastData = animal.toString();
-        if (firstFact == null) {
+        var facts = root.findFacts(animal);
+        if (facts.isEmpty()) {
             print(localeUtil.get("animal.fact.header.none"), animal.getNoun());
         } else {
             print(localeUtil.get("animal.fact.header"), animal.getNoun());
-            var facts = new Stack<String>();
-            while (firstFact != null) {
-                var fact = Sentence.fromQuestion(firstFact.getData());
-                if (fact != null) {
-                    var truth = firstFact.getYes().getData().contains(lastData);
-                    var it = LangUtil.cap(localeUtil.get("lang.article.object"));
-                    var negate = localeUtil.getOp("lang.fun.verb.negate").apply(fact.verb());
-                    var result = String.format(" - %s %s %s.", it, truth ? fact.verb() : negate, fact.fact());
-                    facts.push(result);
-                }
-                lastData = firstFact.getData();
-                firstFact = firstFact.getParent();
-            }
-            while (!facts.isEmpty()) {
-                println(facts.pop());
-            }
+            facts.forEach(PrintUtil::println);
         }
     }
 
@@ -110,8 +95,8 @@ public class GameRunner {
     }
 
     private void loadTree() {
-        if (fm.exists()) {
-            root = fm.read(Node.class);
+        if (fileManager.exists()) {
+            root = fileManager.read(Node.class);
         } else {
             populate();
         }
@@ -126,10 +111,10 @@ public class GameRunner {
     }
 
     public void startGame() {
-        boolean letsPlay = true;
+        boolean letsPlay;
 
         print(localeUtil.get("play.start"));
-        while (letsPlay) {
+        do {
             print(localeUtil.get("instructions"));
             InputUtil.get();
 
@@ -153,7 +138,7 @@ public class GameRunner {
             }
             println(localeUtil.get("play.again"));
             letsPlay = InputUtil.translateBoolean(false);
-        }
+        } while (letsPlay);
     }
 
     private void updateTree(Node newNode, Node pNode, boolean lastAnswer) {

@@ -3,17 +3,19 @@
  */
 package beastie.toys.l8n;
 
+import beastie.toys.l8n.util.LocaleUtil;
+
 import java.util.Arrays;
 import java.util.ResourceBundle;
 
 public class App {
 
-    public static FileManager fm;
+    public static FileManager fileManager;
     public static LocaleUtil localeUtil;
 
     public static void main(String[] args) {
 
-        fm = FileManager.getInstance(
+        fileManager = FileManager.getInstance(
                 Arrays.stream(args)
                         .dropWhile(a -> !"-type".equals(a))
                         .limit(2)

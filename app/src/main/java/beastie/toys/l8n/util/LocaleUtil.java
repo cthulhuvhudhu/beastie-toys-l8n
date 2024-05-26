@@ -1,4 +1,6 @@
-package beastie.toys.l8n;
+package beastie.toys.l8n.util;
+
+import beastie.toys.l8n.lang.Sentence;
 
 import java.util.ResourceBundle;
 import java.util.function.Function;

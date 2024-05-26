@@ -1,4 +1,4 @@
-package beastie.toys.l8n;
+package beastie.toys.l8n.util;
 
 public class PrintUtil {
 

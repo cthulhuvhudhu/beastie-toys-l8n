@@ -1,5 +1,8 @@
 package beastie.toys.l8n.tree;
 
+import beastie.toys.l8n.lang.LangUtil;
+import beastie.toys.l8n.lang.Sentence;
+import beastie.toys.l8n.lang.Subject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -7,6 +10,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import static beastie.toys.l8n.App.localeUtil;
+import static beastie.toys.l8n.util.PrintUtil.print;
+import static beastie.toys.l8n.util.PrintUtil.println;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Node {
@@ -71,7 +78,7 @@ public class Node {
     }
 
     @JsonIgnore
-    public Node find(String data) {
+    private Node find(String data) {
         var toVisit = new ArrayDeque<Node>();
         toVisit.add(this);
         while (!toVisit.isEmpty()) {
@@ -89,6 +96,27 @@ public class Node {
             }
         }
         return null;
+    }
+
+    @JsonIgnore
+    public List<String> findFacts(Subject subject) {
+        var firstFact = find(subject.getNoun());
+        var lastData = subject.toString();
+        var facts = new Stack<String>();
+        // Traverse up the tree and add facts as we go
+        while (firstFact != null) {
+            var fact = Sentence.fromQuestion(firstFact.getData());
+            if (fact != null) {
+                var truth = firstFact.getYes().getData().contains(lastData);
+                var it = LangUtil.cap(localeUtil.get("lang.article.object"));
+                var negate = localeUtil.getOp("lang.fun.verb.negate").apply(fact.verb());
+                var result = String.format(" - %s %s %s.", it, truth ? fact.verb() : negate, fact.fact());
+                facts.push(result);
+            }
+            lastData = firstFact.getData();
+            firstFact = firstFact.getParent();
+        }
+        return facts.reversed();
     }
 
     @JsonIgnore

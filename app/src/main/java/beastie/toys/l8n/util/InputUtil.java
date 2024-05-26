@@ -1,4 +1,6 @@
-package beastie.toys.l8n;
+package beastie.toys.l8n.util;
+
+import beastie.toys.l8n.lang.Sentence;
 
 import java.time.LocalTime;
 import java.util.Arrays;
@@ -6,8 +8,8 @@ import java.util.Random;
 import java.util.Scanner;
 
 import static beastie.toys.l8n.App.localeUtil;
-import static beastie.toys.l8n.PrintUtil.print;
-import static beastie.toys.l8n.PrintUtil.println;
+import static beastie.toys.l8n.util.PrintUtil.print;
+import static beastie.toys.l8n.util.PrintUtil.println;
 
 public class InputUtil {
 
